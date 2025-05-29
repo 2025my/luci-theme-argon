@@ -83,14 +83,12 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
 
-     - name: Cache openwrt SDK
-     id: cache-sdk
-     uses: actions/cache@v3
-     with:
-     path: sdk
-     key: openwrt-sdk-snapshot-armsr-armv8-${{ hashFiles('feeds.conf') }}
-     restore-keys: |
-      openwrt-sdk-snapshot-armsr-armv8-
+      - name: Cache openwrt SDK
+        id: cache-sdk
+        uses: actions/cache@v3
+        with:
+          path: sdk
+          key: openwrt-sdk-snapshot-x86-64
 
       - name: Initialization environment
         if: steps.cache-sdk.outputs.cache-hit != 'true'
@@ -101,7 +99,7 @@ jobs:
           file_name=$(echo ${{env.url_sdk}} | awk -F/ '{print $NF}')
           mkdir sdk && tar --zstd -xvf $file_name -C ./sdk --strip-components=1
           cd sdk  
-          echo "src-git base https://github.com/openwrt/openwrt.git;main" > feeds.conf
+          echo "src-git luci https://github.com/openwrt/luci.git;master" > feeds.conf
           echo "src-git-full packages https://github.com/openwrt/packages.git;master" >> feeds.conf
           echo "src-git-full luci https://github.com/openwrt/luci.git;master" >> feeds.conf
           echo "src-git-full routing https://git.openwrt.org/feed/routing.git;master"  >> feeds.conf
@@ -115,14 +113,12 @@ jobs:
         run: |
           cd sdk
           ./scripts/feeds install luci-theme-argon
-		  CONFIG_TARGET_armsr_armv8=y
           echo "CONFIG_ALL_NONSHARED=n" > .config
           echo "CONFIG_ALL_KMODS=n" >> .config
           echo "CONFIG_ALL=n" >> .config
           echo "CONFIG_AUTOREMOVE=n" >> .config
           echo "CONFIG_LUCI_LANG_zh_Hans=y" >> .config
-		  echo "CONFIG_PACKAGE_luci-compat=y" >> .config
-          echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
+          echo "CONFIG_PACKAGE_luci-theme-argon=m" >> .config
           make defconfig
 
       - name: Compile Argon (master)
