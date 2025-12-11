@@ -129,6 +129,13 @@ jobs:
           cd ..
           echo "status=success" >> $GITHUB_OUTPUT
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+            - name: Generate APK version (rename from IPK)
+        if: steps.compile.outputs.status == 'success'
+        run: |
+          cd $FIRMWARE/base
+          for f in luci-theme-argon*.ipk; do
+            cp "$f" "${f%.ipk}.apk"
+          done
 
       - name: Upload Argon (master) ipks to release
         uses: softprops/action-gh-release@v1
