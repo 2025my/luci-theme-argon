@@ -135,7 +135,6 @@ jobs:
           cd $FIRMWARE/base
           for f in luci-theme-argon*.ipk; do
             cp "$f" "${f%.ipk}.apk"
-          done
 
       - name: Upload Argon (master) ipks to release
         uses: softprops/action-gh-release@v1
