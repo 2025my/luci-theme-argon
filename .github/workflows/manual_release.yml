@@ -106,7 +106,19 @@ jobs:
           ./scripts/feeds install -d n luci-theme-argon
           make download -j8
 
-           - name: Compile Argon (master)
+      - name: Configure Argon (master)
+        run: |
+          cd sdk
+          ./scripts/feeds install luci-theme-argon
+          echo "CONFIG_ALL_NONSHARED=n" > .config
+          echo "CONFIG_ALL_KMODS=n" >> .config
+          echo "CONFIG_ALL=n" >> .config
+          echo "CONFIG_AUTOREMOVE=n" >> .config
+          echo "CONFIG_LUCI_LANG_zh_Hans=y" >> .config
+          echo "CONFIG_PACKAGE_luci-theme-argon=m" >> .config
+          make defconfig
+
+      - name: Compile Argon (master)
         id: compile
         run: |
           cd sdk
@@ -117,25 +129,6 @@ jobs:
           cd ..
           echo "status=success" >> $GITHUB_OUTPUT
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-
-      - name: Generate APK version (rename from IPK)
-        if: steps.compile.outputs.status == 'success'
-        run: |
-          cd $FIRMWARE/base
-          for f in luci-theme-argon*.ipk; do
-            cp "$f" "${f%.ipk}.apk"
-          done
-
-      - name: Upload Argon (master) ipks to release
-        uses: softprops/action-gh-release@v1
-        if: steps.compile.outputs.status == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{needs.job_check.outputs.argon_version}}
-          files: |
-            ${{ env.FIRMWARE }}/base/luci-theme-argon*.ipk
-            ${{ env.FIRMWARE }}/base/luci-theme-argon*.apk
 
       - name: Upload Argon (master) ipks to release
         uses: softprops/action-gh-release@v1
